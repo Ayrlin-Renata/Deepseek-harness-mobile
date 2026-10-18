@@ -1,0 +1,28 @@
+diff --git a/package/lib/index.js b/package/lib/index.js
+index ffca630b85b7f66dc1f9e17f6413be416678f9c6..4638213de4592adab5ef40f0a7a038ca523157c2 100644
+--- a/package/lib/index.js
++++ b/package/lib/index.js
+@@ -268,8 +268,8 @@ const SANDBOX_UNAVAILABLE = "SANDBOX_UNAVAILABLE";
+ * channel.
+ */
+ var SandboxUnavailableError = class extends HarnessError {
+-	constructor(mode, detail) {
+-		super(`sandbox mode "${mode}" is requested but no sandbox backend is usable on this host; refusing to run the command unconfined. Install bubblewrap or run a Landlock-enforcing kernel (Linux), ensure sandbox-exec is usable (macOS), or ensure the ACL restricted-token runner can start (Windows) — otherwise switch the consumer to danger-full-access.` + (detail === void 0 ? "" : ` Runner failure: ${detail}`), SANDBOX_UNAVAILABLE);
++	constructor(mode, detail, platform) {
++		super(`sandbox mode "${mode}" is requested but no sandbox backend is usable on this host; ${platform === "android" ? "Android has no sandbox backend; set DSH_PERMISSION_MODE=danger-full-access to run the command unconfined" : "refusing to run the command unconfined. Install bubblewrap or run a Landlock-enforcing kernel (Linux), ensure sandbox-exec is usable (macOS), or ensure the ACL restricted-token runner can start (Windows) — otherwise switch the consumer to danger-full-access"}.` + (detail === void 0 ? "" : ` Runner failure: ${detail}`), SANDBOX_UNAVAILABLE);
+ 		this.name = "SandboxUnavailableError";
+ 	}
+ };
+diff --git a/package/lib/types/index.d.ts b/package/lib/types/index.d.ts
+index 02a6c21716b252b450087db8d8836dc9b6f1d03e..9b9e0fb66122c130fe021ce5a1b10df4ed904734 100644
+--- a/package/lib/types/index.d.ts
++++ b/package/lib/types/index.d.ts
+@@ -111,7 +111,7 @@ export declare const SANDBOX_UNAVAILABLE = "SANDBOX_UNAVAILABLE";
+  * channel.
+  */
+ export declare class SandboxUnavailableError extends HarnessError {
+-    constructor(mode: ConfinedSandboxMode, detail?: string);
++    constructor(mode: ConfinedSandboxMode, detail?: string, platform?: NodeJS.Platform);
+ }
+ declare module '@deepseek-ai/cordis' {
+     interface Context {

@@ -1,0 +1,274 @@
+diff --git a/package/lib/client.js b/package/lib/client.js
+index a5096f4..3e8cf3d 100644
+--- a/package/lib/client.js
++++ b/package/lib/client.js
+@@ -70,7 +70,7 @@ window.__ModuleLoader__.load({
+ 		}
+ 		//#endregion
+ 		//#region \0dsh-css:/home/runner/work/deepseek-harness/deepseek-harness/packages/client/ui-layout/src/client/AppFrame.module.css.mjs
+-		const css = ".pI_x6G_frame{background:var(--dsw-alias-bg-base);grid-template-rows:minmax(0,1fr) auto;height:100%;display:grid;position:relative;overflow:hidden}.pI_x6G_frame[data-animating]{transition:grid-template-columns var(--ds-transition-duration-slow) var(--ds-ease-in-out)}.pI_x6G_frame[data-dragging]{transition:none}[data-windows-titlebar] .pI_x6G_frame{--dsh-windows-content-radius:16px;box-sizing:border-box;padding-top:var(--dsh-windows-titlebar-height);background:var(--dsw-specific-sidebar-fill)}[data-windows-titlebar] .pI_x6G_centerCol{background:var(--dsw-alias-bg-base);border-radius:var(--dsh-windows-content-radius) 0 0 0;corner-shape:round}[data-windows-titlebar] .pI_x6G_frame:before{content:\"\";height:var(--dsh-windows-titlebar-height);background:var(--dsw-specific-sidebar-fill);-webkit-app-region:drag;position:absolute;inset:0 0 auto}[data-windows-titlebar] .pI_x6G_sidebarCol{border-right:none}@media (prefers-reduced-motion:reduce){.pI_x6G_frame[data-animating]{transition:none}}.pI_x6G_sidebarCol{background:var(--dsw-specific-sidebar-fill);border-right:.5px solid var(--dsw-alias-border-l3);min-width:0;overflow:hidden}.pI_x6G_centerCol{flex-direction:column;min-width:0;display:flex;overflow:hidden}[data-platform=darwin] .pI_x6G_frame{background:0 0}html[data-platform=darwin]{--dsh-frame-top-clearance:48px}html[data-windows-titlebar]{--dsh-frame-top-clearance:var(--dsh-windows-titlebar-height);--dsh-frame-chrome-top:var(--dsh-windows-titlebar-height)}html[data-platform=darwin],html[data-windows-titlebar]{--dsh-frame-overlay-top:calc(var(--dsh-frame-top-clearance) + 20px)}html[data-platform=darwin][data-fullscreen],html[data-windows-titlebar][data-fullscreen]{--dsh-frame-overlay-top:20px;--dsh-frame-chrome-top:0px}[data-platform=darwin] .pI_x6G_sidebarCol{background:linear-gradient(to bottom, #7a9bf01a, #7a9bf000 35%, #8f89b800 68%, #8f89b817), color-mix(in srgb, color-mix(in srgb, var(--dsw-specific-sidebar-fill) 97%, #7a9bf0) 40%, transparent);border-right:none}[data-platform=darwin] [data-ds-dark-theme] .pI_x6G_sidebarCol{background:linear-gradient(to bottom, #7a9bf014, #7a9bf000 35%, #8f89b800 68%, #8f89b812), color-mix(in srgb, var(--dsw-specific-sidebar-fill) 50%, transparent)}@media (prefers-reduced-transparency:reduce){[data-platform=darwin] .pI_x6G_sidebarCol,[data-platform=darwin] [data-ds-dark-theme] .pI_x6G_sidebarCol{background:color-mix(in srgb, var(--dsw-specific-sidebar-fill) 90%, transparent)}}[data-platform=darwin] .pI_x6G_centerCol{background:var(--dsw-alias-bg-base);border-left:.5px solid var(--dsw-alias-border-l3)}[data-platform=darwin] .pI_x6G_rightbarCol{background:var(--dsw-alias-bg-base)}[data-platform=darwin] [data-sidebar-collapsed] .pI_x6G_centerCol{border-left:none}[data-platform=darwin] .pI_x6G_frame[data-sidebar-collapsed]{--dsh-frame-leading-clearance:160px}[data-platform=darwin][data-fullscreen] .pI_x6G_frame[data-sidebar-collapsed]{--dsh-frame-leading-clearance:84px}[data-platform=darwin][data-fullscreen] .pI_x6G_leadingSeat{left:12px}.pI_x6G_leadingSeat{z-index:15;-webkit-app-region:no-drag;align-items:center;display:flex;position:absolute;top:11px;left:88px}.pI_x6G_handle{cursor:col-resize;z-index:11;touch-action:none;grid-area:1/1/2/-1;width:8px;margin-left:-4px;position:absolute;top:0;bottom:0}.pI_x6G_frame[data-animating] .pI_x6G_handle{transition:left var(--ds-transition-duration-slow) var(--ds-ease-in-out)}.pI_x6G_frame[data-dragging] .pI_x6G_handle,.pI_x6G_frame[data-rightbar-fullscreen],.pI_x6G_frame[data-rightbar-fullscreen] .pI_x6G_handle,.pI_x6G_frame[data-rightbar-instant],.pI_x6G_frame[data-rightbar-instant] .pI_x6G_handle{transition:none}@media (prefers-reduced-motion:reduce){.pI_x6G_frame[data-animating] .pI_x6G_handle{transition:none}}.pI_x6G_rightbarCol{min-width:0;position:relative;overflow:visible}.pI_x6G_bottomRow{background:var(--dsw-alias-bg-base);grid-column:1/-1;min-width:0;min-height:0;overflow:auto}.pI_x6G_overlayLayer{z-index:20;pointer-events:none;position:absolute;inset:0}.pI_x6G_overlayLayer>*{pointer-events:auto}";
++		const css = ".pI_x6G_frame{background:var(--dsw-alias-bg-base);grid-template-rows:minmax(0,1fr) auto;height:100%;display:grid;position:relative;overflow:hidden}.pI_x6G_frame[data-animating]{transition:grid-template-columns var(--ds-transition-duration-slow) var(--ds-ease-in-out)}.pI_x6G_frame[data-dragging]{transition:none}[data-windows-titlebar] .pI_x6G_frame{--dsh-windows-content-radius:16px;box-sizing:border-box;padding-top:var(--dsh-windows-titlebar-height);background:var(--dsw-specific-sidebar-fill)}[data-windows-titlebar] .pI_x6G_centerCol{background:var(--dsw-alias-bg-base);border-radius:var(--dsh-windows-content-radius) 0 0 0;corner-shape:round}[data-windows-titlebar] .pI_x6G_frame:before{content:\"\";height:var(--dsh-windows-titlebar-height);background:var(--dsw-specific-sidebar-fill);-webkit-app-region:drag;position:absolute;inset:0 0 auto}[data-windows-titlebar] .pI_x6G_sidebarCol{border-right:none}@media (prefers-reduced-motion:reduce){.pI_x6G_frame[data-animating]{transition:none}}.pI_x6G_sidebarCol{background:var(--dsw-specific-sidebar-fill);border-right:.5px solid var(--dsw-alias-border-l3);min-width:0;overflow:hidden}.pI_x6G_centerCol{flex-direction:column;min-width:0;display:flex;overflow:hidden}[data-platform=darwin] .pI_x6G_frame{background:0 0}html[data-platform=darwin]{--dsh-frame-top-clearance:48px}html[data-windows-titlebar]{--dsh-frame-top-clearance:var(--dsh-windows-titlebar-height);--dsh-frame-chrome-top:var(--dsh-windows-titlebar-height)}html[data-platform=darwin],html[data-windows-titlebar]{--dsh-frame-overlay-top:calc(var(--dsh-frame-top-clearance) + 20px)}html[data-platform=darwin][data-fullscreen],html[data-windows-titlebar][data-fullscreen]{--dsh-frame-overlay-top:20px;--dsh-frame-chrome-top:0px}[data-platform=darwin] .pI_x6G_sidebarCol{background:linear-gradient(to bottom, #7a9bf01a, #7a9bf000 35%, #8f89b800 68%, #8f89b817), color-mix(in srgb, color-mix(in srgb, var(--dsw-specific-sidebar-fill) 97%, #7a9bf0) 40%, transparent);border-right:none}[data-platform=darwin] [data-ds-dark-theme] .pI_x6G_sidebarCol{background:linear-gradient(to bottom, #7a9bf014, #7a9bf000 35%, #8f89b800 68%, #8f89b812), color-mix(in srgb, var(--dsw-specific-sidebar-fill) 50%, transparent)}@media (prefers-reduced-transparency:reduce){[data-platform=darwin] .pI_x6G_sidebarCol,[data-platform=darwin] [data-ds-dark-theme] .pI_x6G_sidebarCol{background:color-mix(in srgb, var(--dsw-specific-sidebar-fill) 90%, transparent)}}[data-platform=darwin] .pI_x6G_centerCol{background:var(--dsw-alias-bg-base);border-left:.5px solid var(--dsw-alias-border-l3)}[data-platform=darwin] .pI_x6G_rightbarCol{background:var(--dsw-alias-bg-base)}[data-platform=darwin] [data-sidebar-collapsed] .pI_x6G_centerCol{border-left:none}[data-platform=darwin] .pI_x6G_frame[data-sidebar-collapsed]{--dsh-frame-leading-clearance:160px}[data-platform=darwin][data-fullscreen] .pI_x6G_frame[data-sidebar-collapsed]{--dsh-frame-leading-clearance:84px}[data-platform=darwin][data-fullscreen] .pI_x6G_leadingSeat{left:12px}.pI_x6G_leadingSeat{z-index:15;-webkit-app-region:no-drag;align-items:center;display:flex;position:absolute;top:11px;left:88px}.pI_x6G_handle{cursor:col-resize;z-index:11;touch-action:none;grid-area:1/1/2/-1;width:8px;margin-left:-4px;position:absolute;top:0;bottom:0}.pI_x6G_frame[data-animating] .pI_x6G_handle{transition:left var(--ds-transition-duration-slow) var(--ds-ease-in-out)}.pI_x6G_frame[data-dragging] .pI_x6G_handle,.pI_x6G_frame[data-rightbar-fullscreen],.pI_x6G_frame[data-rightbar-fullscreen] .pI_x6G_handle,.pI_x6G_frame[data-rightbar-instant],.pI_x6G_frame[data-rightbar-instant] .pI_x6G_handle{transition:none}@media (prefers-reduced-motion:reduce){.pI_x6G_frame[data-animating] .pI_x6G_handle{transition:none}}.pI_x6G_rightbarCol{min-width:0;position:relative;overflow:visible}.pI_x6G_bottomRow{background:var(--dsw-alias-bg-base);grid-column:1/-1;min-width:0;min-height:0;overflow:auto}.pI_x6G_overlayLayer{z-index:20;pointer-events:none;position:absolute;inset:0}.pI_x6G_overlayLayer>*{pointer-events:auto}.pI_x6G_mobileFrame{background:var(--dsw-alias-bg-base);flex-direction:column;height:100%;display:flex;position:relative;overflow:hidden}.pI_x6G_mobileTopBar{box-sizing:border-box;border-bottom:1px solid var(--dsw-alias-border-l1);background:var(--dsw-specific-sidebar-fill);z-index:10;flex:none;justify-content:space-between;align-items:center;height:48px;padding:0 6px;display:flex}.pI_x6G_mobileTopBarButton{width:40px;height:40px;color:var(--dsw-alias-label-secondary);cursor:pointer;background:0 0;border:none;border-radius:8px;justify-content:center;align-items:center;display:inline-flex}.pI_x6G_mobileTopBarButton:hover{background:var(--dsw-alias-interactive-bg-hover)}.pI_x6G_mobileTopBarButton:disabled{opacity:.4;cursor:default}.pI_x6G_mobileCenter{flex-direction:column;flex:1;min-height:0;display:flex;overflow:hidden}.pI_x6G_mobileBackdrop{z-index:29;background:var(--dsw-alias-bg-mask-1);backdrop-filter:var(--dsw-mask-blur);opacity:0;visibility:hidden;transition:opacity var(--ds-transition-duration-slow) var(--ds-ease-in-out), visibility var(--ds-transition-duration-slow) var(--ds-ease-in-out);position:fixed;inset:0}.pI_x6G_mobileBackdrop[data-open]{opacity:1;visibility:visible}.pI_x6G_mobileSidebarDrawer,.pI_x6G_mobileDetailsDrawer{z-index:30;background:var(--dsw-specific-sidebar-fill);box-shadow:var(--dsw-shadow-lv3);transition:transform var(--ds-transition-duration-slow) var(--ds-ease-in-out), visibility var(--ds-transition-duration-slow) var(--ds-ease-in-out);position:fixed;top:0;bottom:0;overflow:hidden}.pI_x6G_mobileSidebarDrawer{border-right:1px solid var(--dsw-alias-border-l1);visibility:hidden;left:0;transform:translate(-100%)}.pI_x6G_mobileSidebarDrawer[data-open]{visibility:visible;transform:translate(0)}.pI_x6G_mobileDetailsDrawer{border-left:1px solid var(--dsw-alias-border-l2);visibility:hidden;right:0;transform:translate(100%)}.pI_x6G_mobileDetailsDrawer[data-open]{visibility:visible;transform:translate(0)}@media (prefers-reduced-motion:reduce){.pI_x6G_mobileBackdrop,.pI_x6G_mobileSidebarDrawer,.pI_x6G_mobileDetailsDrawer{transition:none}}";
+ 		const tagId = "@deepseek-ai/dsh-client-ui-layout/AppFrame.module.css";
+ 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
+ 			const tag = document.createElement("style");
+@@ -90,6 +90,141 @@ window.__ModuleLoader__.load({
+ 			"sidebarCol": "pI_x6G_sidebarCol"
+ 		};
+ 		//#endregion
++		//#region lib/types/client/MobileFrame.js
++		/** Drawer geometry: side panels cap at a desktop-like width, else a phone share. */
++		const SIDEBAR_DRAWER_RATIO = .8;
++		const SIDEBAR_DRAWER_MAX = 320;
++		const SIDEBAR_DRAWER_MIN = 240;
++		const DETAILS_DRAWER_RATIO = .85;
++		const DETAILS_DRAWER_MAX = 420;
++		/** Viewport width at or below which AppFrame renders the mobile single column. */
++		const MOBILE_BREAKPOINT = 767;
++		/** mobile shell dictionaries: top-bar toggle aria labels (the key-set source of truth). */
++		/** Simplified Chinese dictionary. */
++		const mobileZh = {
++			"mobile.openSidebar": "打开侧栏",
++			"mobile.openDetails": "打开详情"
++		};
++		/** English dictionary, checked complete against the zh key set. */
++		const mobileEn = {
++			"mobile.openSidebar": "Open sidebar",
++			"mobile.openDetails": "Open details"
++		};
++		/** Bound layout-namespace translator; bound once in apply(), identity before. */
++		let translateMobile = (key) => key;
++		/**
++		* Render the mobile single-column shell.
++		* @param props - frame shares plus the viewport width and the product title.
++		* @returns the mobile element tree (title projection, top bar, conversation, two drawers, overlay).
++		*/
++		function MobileFrame({ useStore, usePanelInfo, useSessions, actions, renderSlot, viewport, productTitle }) {
++			const layoutInfo = useStore((state) => state.layoutInfo);
++			const sidebarOpen = layoutInfo.narrowExpanded;
++			const detailsOpen = layoutInfo.rightbarShown;
++			const sidebarWidth = Math.min(Math.max(viewport * SIDEBAR_DRAWER_RATIO, SIDEBAR_DRAWER_MIN), SIDEBAR_DRAWER_MAX);
++			const detailsWidth = Math.min(viewport * DETAILS_DRAWER_RATIO, DETAILS_DRAWER_MAX);
++			return (0, react_jsx_runtime.jsxs)("div", {
++				className: AppFrame_module_css_default.mobileFrame,
++				children: [
++					(0, react_jsx_runtime.jsx)(DocumentTitle, { productTitle, useSessions, usePanelInfo }),
++					(0, react_jsx_runtime.jsxs)("div", {
++						className: AppFrame_module_css_default.mobileTopBar,
++						children: [(0, react_jsx_runtime.jsx)("button", {
++							type: "button",
++							className: AppFrame_module_css_default.mobileTopBarButton,
++							"aria-label": translateMobile("mobile.openSidebar"),
++							"aria-expanded": sidebarOpen,
++							onClick: () => {
++								actions.toggleSidebar();
++							},
++							children: (0, react_jsx_runtime.jsx)("svg", {
++								viewBox: "0 0 16 16",
++								width: "18",
++								height: "18",
++								"aria-hidden": true,
++								children: (0, react_jsx_runtime.jsx)("path", {
++									d: "M2 3.5h12M2 8h12M2 12.5h12",
++									stroke: "currentColor",
++									strokeWidth: "1.5",
++									strokeLinecap: "round"
++								})
++							})
++						}), (0, react_jsx_runtime.jsx)("button", {
++							type: "button",
++							className: AppFrame_module_css_default.mobileTopBarButton,
++							"aria-label": translateMobile("mobile.openDetails"),
++							"aria-expanded": detailsOpen,
++							onClick: () => {
++								actions.openRightbar(false, false);
++							},
++							children: (0, react_jsx_runtime.jsxs)("svg", {
++								viewBox: "0 0 16 16",
++								width: "18",
++								height: "18",
++								"aria-hidden": true,
++								children: [(0, react_jsx_runtime.jsx)("path", {
++									d: "M2 2.5h9a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5H2z",
++									fill: "none",
++									stroke: "currentColor",
++									strokeWidth: "1.5"
++								}), (0, react_jsx_runtime.jsx)("path", {
++									d: "M3 5h4M3 8h4M3 11h4",
++									stroke: "currentColor",
++									strokeWidth: "1.5",
++									strokeLinecap: "round"
++								})]
++							})
++						})]
++					}),
++					(0, react_jsx_runtime.jsx)("div", {
++						className: AppFrame_module_css_default.mobileCenter,
++						children: (0, react_jsx_runtime.jsx)(MainPanel, { usePanelInfo, renderSlot })
++					}),
++					(0, react_jsx_runtime.jsx)("div", {
++						className: AppFrame_module_css_default.mobileBackdrop,
++						"data-open": sidebarOpen || void 0,
++						"aria-hidden": !sidebarOpen,
++						onClick: () => {
++							actions.toggleSidebar();
++						}
++					}),
++					(0, react_jsx_runtime.jsx)("div", {
++						className: AppFrame_module_css_default.mobileSidebarDrawer,
++						"data-open": sidebarOpen || void 0,
++						style: { width: sidebarWidth },
++						"aria-hidden": !sidebarOpen,
++						children: renderSlot("sidebar", {
++							collapsed: false,
++							width: sidebarWidth
++						})
++					}),
++					(0, react_jsx_runtime.jsx)("div", {
++						className: AppFrame_module_css_default.mobileBackdrop,
++						"data-open": detailsOpen || void 0,
++						"aria-hidden": !detailsOpen,
++						onClick: () => {
++							actions.closeRightbar();
++						}
++					}),
++					(0, react_jsx_runtime.jsx)("div", {
++						className: AppFrame_module_css_default.mobileDetailsDrawer,
++						"data-open": detailsOpen || void 0,
++						style: { width: detailsWidth },
++						"aria-hidden": !detailsOpen,
++						children: renderSlot("rightbar", {
++							width: detailsWidth,
++							viewportWidth: viewport,
++							canShow: true
++						})
++					}),
++					(0, react_jsx_runtime.jsx)("div", {
++						className: AppFrame_module_css_default.overlayLayer,
++						"data-shell-overlay": true,
++						children: renderSlot("shell.overlay", {})
++					})]
++			});
++		}
++		//#endregion
+ 		//#region lib/types/client/AppFrame.js
+ 		/**
+ 		* Three-column shell frame, registered into the built-in 'root' slot (the web
+@@ -235,6 +370,13 @@ window.__ModuleLoader__.load({
+ 				};
+ 			}, [actions]);
+ 			const narrow = viewport < SIDEBAR_AUTO_COLLAPSE;
++			const mobile = viewport <= MOBILE_BREAKPOINT;
++			const wasMobile = (0, react.useRef)(mobile);
++			(0, react.useEffect)(() => {
++				const entered = mobile && !wasMobile.current;
++				wasMobile.current = mobile;
++				if (entered && layoutInfo.rightbarShown) actions.closeRightbar();
++			}, [mobile, layoutInfo.rightbarShown, actions]);
+ 			const sidebarCollapsed = narrow ? !layoutInfo.narrowExpanded : layoutInfo.sidebar === 0;
+ 			const sidebarPreference = sidebarCollapsed ? 0 : layoutInfo.sidebar === 0 ? 280 : layoutInfo.sidebar;
+ 			const rightbarPreference = layoutInfo.rightbar ?? viewport * .45;
+@@ -313,6 +455,15 @@ window.__ModuleLoader__.load({
+ 			const overlays = (0, react.useMemo)(() => renderSlot("shell.overlay", {}), [renderSlot]);
+ 			const leading = (0, react.useMemo)(() => renderSlot("shell.leading", {}), [renderSlot]);
+ 			const leadingMounted = darwin && sidebarCollapsed;
++			if (mobile) return (0, react_jsx_runtime.jsx)(MobileFrame, {
++				useStore,
++				usePanelInfo,
++				useSessions,
++				actions,
++				renderSlot,
++				viewport,
++				productTitle
++			});
+ 			return (0, react_jsx_runtime.jsxs)("div", {
+ 				ref: frameRef,
+ 				className: AppFrame_module_css_default.frame,
+@@ -604,6 +755,11 @@ window.__ModuleLoader__.load({
+ 				en
+ 			}), "layout: command labels");
+ 			const t = ctx.locale.bind("shortcuts.layout");
++			ctx.effect(() => ctx.locale.register("layout", {
++				zh: mobileZh,
++				en: mobileEn
++			}), "layout: mobile shell labels");
++			translateMobile = ctx.locale.bind("layout");
+ 			ctx.effect(() => {
+ 				const handle = createLayoutStore();
+ 				const instance = handle.create();
+diff --git a/package/lib/types/client/MobileFrame.d.ts b/package/lib/types/client/MobileFrame.d.ts
+new file mode 100644
+index 0000000..4381d30
+--- /dev/null
++++ b/package/lib/types/client/MobileFrame.d.ts
+@@ -0,0 +1,27 @@
++/**
++ * Single-column mobile shell, rendered by AppFrame at or below MOBILE_BREAKPOINT.
++ * The conversation fills the viewport below a slim control bar; the sidebar and
++ * rightbar slots render in always-mounted fixed drawers that slide in over the
++ * conversation (side content stays mounted and keeps state — mirroring the
++ * desktop never-unmount behavior). Drawer open state reuses the layout store:
++ * the sidebar drawer tracks `narrowExpanded` (below the breakpoint
++ * `toggleSidebar` flips it — the hamburger semantics) and the rightbar drawer
++ * tracks `rightbarShown`. The shell-overlay slot renders above the control bar
++ * but below the drawers.
++ */
++import type { AppFrameProps } from './AppFrame.ts';
++/** Full composed props: the frame shares the mobile shell needs, plus the
++ *  rendered width and the product title (browser-title projection). */
++export type MobileFrameProps = Pick<AppFrameProps, 'useStore' | 'useSessions' | 'usePanelInfo' | 'actions' | 'renderSlot'> & {
++    /** Rendered frame width in px; drawers size off it. */
++    viewport: number;
++    /** Build-configured or localized product title. */
++    productTitle: string;
++};
++/**
++ * Render the mobile single-column shell.
++ * @param props - frame shares plus the viewport width and the product title.
++ * @returns the mobile element tree (title projection, top bar, conversation, two drawers, overlay).
++ */
++export declare function MobileFrame({ useStore, usePanelInfo, useSessions, actions, renderSlot, viewport, productTitle, }: MobileFrameProps): import("react").JSX.Element;
++//# sourceMappingURL=MobileFrame.d.ts.map
+diff --git a/package/lib/types/client/index.d.ts b/package/lib/types/client/index.d.ts
+index a15af0e..7bcf1e9 100644
+--- a/package/lib/types/client/index.d.ts
++++ b/package/lib/types/client/index.d.ts
+@@ -11,8 +11,10 @@ import type { Context as ClientContext } from '@deepseek-ai/cordis';
+ import type { SnapshotSelectorHook } from '@deepseek-ai/dsh-client-ui-slots';
+ import type { PanelInfo } from './service.ts';
+ import { zh } from './shortcut-locales.ts';
++import { type LayoutKey } from './locales.ts';
+ export { LayoutController } from './service.ts';
+ export type { ILayout, MainPanelId, PanelInfo } from './service.ts';
++export type { LayoutKey } from './locales.ts';
+ /** Selector hook over root-scoped panel selection. */
+ export type UsePanelInfo = SnapshotSelectorHook<PanelInfo>;
+ declare module '@deepseek-ai/cordis' {
+@@ -25,6 +27,8 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
+     interface LocaleNamespaceMap {
+         /** Layout keyboard command labels. */
+         'shortcuts.layout': keyof typeof zh;
++        /** Mobile shell control labels (top-bar toggle aria labels). */
++        'layout': LayoutKey;
+     }
+     interface GlobalStandardProps {
+         /** Subscribe to the selected main panel independently of parent renders. */
+diff --git a/package/lib/types/client/locales.d.ts b/package/lib/types/client/locales.d.ts
+new file mode 100644
+index 0000000..bb91365
+--- /dev/null
++++ b/package/lib/types/client/locales.d.ts
+@@ -0,0 +1,14 @@
++/** mobile shell dictionaries: top-bar toggle aria labels. */
++/** Simplified Chinese dictionary (the key-set source of truth). */
++export declare const zh: {
++    'mobile.openSidebar': string;
++    'mobile.openDetails': string;
++};
++/** The mobile shell namespace key union. */
++export type LayoutKey = keyof typeof zh;
++/** English dictionary, checked complete against the zh key set. */
++export declare const en: {
++    'mobile.openSidebar': string;
++    'mobile.openDetails': string;
++};
++//# sourceMappingURL=locales.d.ts.map

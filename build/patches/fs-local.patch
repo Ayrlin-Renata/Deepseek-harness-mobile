@@ -1,0 +1,59 @@
+diff --git a/package/lib/index.js b/package/lib/index.js
+index b77bf6ce9faefdd2deceb945236c4c8234d7f0dc..dcbfbfe9bd5057cf8f6b1b4b8b1a601e217510f0 100644
+--- a/package/lib/index.js
++++ b/package/lib/index.js
+@@ -6,8 +6,8 @@ import { pathToFileURL } from "node:url";
+ import z from "@deepseek-ai/schemastery";
+ import { FileSystem, FsError, FsTargetKey, FsVersion } from "@deepseek-ai/dsh-fs";
+ import { randomUUID } from "node:crypto";
+-import { createReadStream, realpath } from "node:fs";
+-import { chmod, link, lstat, mkdir, open, readFile, readdir, rename, rm, stat } from "node:fs/promises";
++import { constants as fsConstants, createReadStream, realpath } from "node:fs";
++import { chmod, copyFile, link, lstat, mkdir, open, readFile, readdir, rename, rm, stat } from "node:fs/promises";
+ import { TextDecoder, promisify } from "node:util";
+ //#region lib/types/win32.js
+ /**
+@@ -103,6 +103,12 @@ function isENOENT(error) {
+ function isEEXIST(error) {
+ 	return error instanceof Error && "code" in error && error.code === "EEXIST";
+ }
++/** Errno codes where link(2) fails because the filesystem/SELinux forbids hard links (not a real path conflict). */
++/* v8 ignore start -- reached only on no-hard-link filesystems (Android/FUSE); POSIX link() succeeds and the test lanes never inject these errno codes */
++function isHardLinkUnsupported(error) {
++	return error instanceof Error && "code" in error && (error.code === "EACCES" || error.code === "EPERM" || error.code === "EOPNOTSUPP" || error.code === "ENOTSUP" || error.code === "EXDEV" || error.code === "EMLINK");
++}
++/* v8 ignore stop */
+ /**
+ * A path component that is expected to be a directory is a regular file (e.g.
+ * resolving `afile/child.txt` when `afile` is a file). Like `ENOENT`, the target
+@@ -548,7 +554,12 @@ async function writeFileAtomic(absolutePath, content, mode, signal, internals =
+ 		handle = void 0;
+ 		throwIfAborted(signal, "write");
+ 		if (createIfAbsent !== void 0) try {
+-			await linkFile(tempPath, absolutePath);
++			try {
++				await linkFile(tempPath, absolutePath);
++			} catch (error) {
++				if (!isHardLinkUnsupported(error)) throw error;
++				await copyFile(tempPath, absolutePath, fsConstants.COPYFILE_EXCL);
++			}
+ 		} catch (error) {
+ 			await throwGuardedCreateFailure(error, absolutePath, createIfAbsent.displayPath, inspectPublicationTarget);
+ 		}
+diff --git a/package/package.json b/package/package.json
+index 1a67b451f5e6288ba4d4157e6334674da6b756d9..1936741a5e482ff6b99937d63151b9a1a46e08f1 100644
+--- a/package/package.json
++++ b/package/package.json
+@@ -32,9 +32,11 @@
+   },
+   "dependencies": {
+     "chokidar": "5.0.0",
+-    "koffi": "3.1.1",
+     "@deepseek-ai/schemastery": "~3.18.5-alpha.2"
+   },
++  "optionalDependencies": {
++    "koffi": "3.1.1"
++  },
+   "devDependencies": {
+     "@deepseek-ai/dsh-fs": "0.2.1-alpha.5",
+     "@deepseek-ai/dsh-llm": "0.2.1-alpha.5",

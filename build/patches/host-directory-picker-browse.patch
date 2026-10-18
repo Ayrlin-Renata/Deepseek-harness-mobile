@@ -1,0 +1,288 @@
+diff --git a/package/lib/index.js b/package/lib/index.js
+index 2b8c76e26a05022d8f24fcfff651bc8c1ee83dec..5ba4b10bac00eea82432dab4ed1f0c583cb64f67 100644
+--- a/package/lib/index.js
++++ b/package/lib/index.js
+@@ -2,6 +2,7 @@ import { mkdir, opendir, stat } from "node:fs/promises";
+ import { homedir } from "node:os";
+ import { basename, dirname, join, posix, resolve, win32 } from "node:path";
+ import z from "@deepseek-ai/schemastery";
++import { deadline, timeoutOf } from "@deepseek-ai/dsh-timeout";
+ import { DirectoryPicker, DirectoryPickerError } from "@deepseek-ai/dsh-host-directory-picker";
+ //#region lib/types/index.js
+ /**
+@@ -14,6 +15,64 @@ import { DirectoryPicker, DirectoryPickerError } from "@deepseek-ai/dsh-host-dir
+ * recorded in the directory-picker seam Agent Note.
+ * @module @deepseek-ai/dsh-host-directory-picker-browse
+ */
++var __addDisposableResource = function(env, value, async) {
++	if (value !== null && value !== void 0) {
++		if (typeof value !== "object" && typeof value !== "function") throw new TypeError("Object expected.");
++		var dispose, inner;
++		if (async) {
++			if (!Symbol.asyncDispose) throw new TypeError("Symbol.asyncDispose is not defined.");
++			dispose = value[Symbol.asyncDispose];
++		}
++		if (dispose === void 0) {
++			if (!Symbol.dispose) throw new TypeError("Symbol.dispose is not defined.");
++			dispose = value[Symbol.dispose];
++			if (async) inner = dispose;
++		}
++		if (typeof dispose !== "function") throw new TypeError("Object not disposable.");
++		if (inner) dispose = function() {
++			try {
++				inner.call(this);
++			} catch (e) {
++				return Promise.reject(e);
++			}
++		};
++		env.stack.push({
++			value,
++			dispose,
++			async
++		});
++	} else if (async) env.stack.push({ async: true });
++	return value;
++};
++var __disposeResources = (function(SuppressedError) {
++	return function(env) {
++		function fail(e) {
++			env.error = env.hasError ? new SuppressedError(e, env.error, "An error was suppressed during disposal.") : e;
++			env.hasError = true;
++		}
++		var r, s = 0;
++		function next() {
++			while (r = env.stack.pop()) try {
++				if (!r.async && s === 1) return s = 0, env.stack.push(r), Promise.resolve().then(next);
++				if (r.dispose) {
++					var result = r.dispose.call(r.value);
++					if (r.async) return s |= 2, Promise.resolve(result).then(next, function(e) {
++						fail(e);
++						return next();
++					});
++				} else s |= 1;
++			} catch (e) {
++				fail(e);
++			}
++			if (s === 1) return env.hasError ? Promise.reject(env.error) : Promise.resolve();
++			if (env.hasError) throw env.error;
++		}
++		return next();
++	};
++})(typeof SuppressedError === "function" ? SuppressedError : function(error, suppressed, message) {
++	var e = new Error(message);
++	return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
++});
+ /**
+ * Ancestor chain from the filesystem root to `target` inclusive — the
+ * breadcrumb rows of a listing, every one a jump target.
+@@ -113,6 +172,26 @@ function messageOf(error) {
+ 	/* v8 ignore next -- node:fs rejects with Error instances; the String arm only satisfies the unknown narrowing. */
+ 	return error instanceof Error ? error.message : String(error);
+ }
++/** Capability-owned timeout code the scan deadline stamps onto a timed-out listing. */
++const LIST_TIMEOUT_CODE = "DIRECTORY_LIST_TIMEOUT";
++/**
++* Map one failed listing onto the seam's error vocabulary. The scan deadline's
++* own timeout becomes a retryable unreadable-directory error (a stalled
++* filesystem must not hang the caller's request forever); the caller's abort
++* passes through as its own reason — an abort is not an unreadable directory;
++* everything else wraps with the target path.
++* @param target - the directory whose listing failed.
++* @param error - the thrown value (a deadline reason, the caller's abort, or an fs error).
++* @param scan - the scan's fused deadline signal (its reason carries the timeout).
++* @param timeoutCode - the capability-owned timeout code to recognize.
++* @returns never: every arm throws its mapped outcome.
++*/
++function listingFailure(target, error, scan, timeoutCode) {
++	const timedOut = timeoutOf(scan, timeoutCode);
++	if (timedOut !== void 0) throw new DirectoryPickerError("directory-unreadable", target, `listing ${target} timed out after ${timedOut.timeoutMs}ms: the filesystem did not answer in time — try again`);
++	scan.throwIfAborted();
++	throw new DirectoryPickerError("directory-unreadable", target, `cannot list ${target}: ${messageOf(error)}`);
++}
+ /**
+ * One listing row for a dirent, following symlinks to directories; null for
+ * non-directories and broken/cyclic links (skipped silently — the browser
+@@ -144,8 +223,16 @@ var BrowseDirectoryPicker = class extends DirectoryPicker {
+ 	* (hidden rows included), with `truncated` flagging a cut level. The
+ 	* default follows GitHub's web UI, which truncates directory listings at
+ 	* 1,000 entries.
++	*
++	* `listTimeoutMs` bounds the complete scan of one listing level: a
++	* filesystem that stalls (a network mount, an Android shared-storage FUSE
++	* pass) fails the listing with a retryable `directory-unreadable` error
++	* instead of leaving the caller's request hanging.
+ 	*/
+-	static Config = z.object({ maxEntries: z.natural().min(1).default(1e3) });
++	static Config = z.object({
++		maxEntries: z.natural().min(1).default(1e3),
++		listTimeoutMs: z.natural().min(1).default(1e4)
++	});
+ 	browseCapability = {
+ 		kind: "browse",
+ 		list: (path, signal) => this.list(path, signal),
+@@ -163,58 +250,70 @@ var BrowseDirectoryPicker = class extends DirectoryPicker {
+ 		return this.browseCapability;
+ 	}
+ 	async list(path, signal) {
+-		const home = homedir();
+-		if (path !== void 0 && !fullyQualified(path)) throw new DirectoryPickerError("directory-unreadable", path, `cannot list "${path}": not a fully qualified path`);
+-		const target = resolve(path ?? home);
+-		const keep = this.config.maxEntries + 1;
+-		const window = [];
+-		let evicted = false;
++		const env_1 = {
++			stack: [],
++			error: void 0,
++			hasError: false
++		};
+ 		try {
+-			const opening = opendir(target);
+-			const level = await raceAbort(opening, signal).catch((error) => {
+-				opening.then((dir) => dir.close().catch(swallowCloseFailure), () => {});
+-				throw error;
+-			});
++			const home = homedir();
++			if (path !== void 0 && !fullyQualified(path)) throw new DirectoryPickerError("directory-unreadable", path, `cannot list "${path}": not a fully qualified path`);
++			const target = resolve(path ?? home);
++			const scan = __addDisposableResource(env_1, deadline(signal, this.config.listTimeoutMs, LIST_TIMEOUT_CODE), false).signal;
++			const keep = this.config.maxEntries + 1;
++			const window = [];
++			let evicted = false;
++			const entries = [];
+ 			try {
+-				for (;;) {
+-					const dirent = await raceAbort(level.read(), signal);
+-					if (dirent === null) break;
+-					if (!dirent.isDirectory() && !dirent.isSymbolicLink()) continue;
+-					if (boundedInsert(window, {
+-						name: dirent.name,
+-						isDirectory: dirent.isDirectory(),
+-						isSymbolicLink: dirent.isSymbolicLink()
+-					}, keep)) evicted = true;
++				const opening = opendir(target);
++				const level = await raceAbort(opening, scan).catch((error) => {
++					opening.then((dir) => dir.close().catch(swallowCloseFailure), () => {});
++					throw error;
++				});
++				try {
++					for (;;) {
++						const dirent = await raceAbort(level.read(), scan);
++						if (dirent === null) break;
++						if (!dirent.isDirectory() && !dirent.isSymbolicLink()) continue;
++						if (boundedInsert(window, {
++							name: dirent.name,
++							isDirectory: dirent.isDirectory(),
++							isSymbolicLink: dirent.isSymbolicLink()
++						}, keep)) evicted = true;
++					}
++				} finally {
++					const closing = level.close();
++					/* v8 ignore next 3 -- an abort between open and close needs a stalled read; the abandoned-close arm has no observable outcome. */
++					if (scan.aborted) closing.catch(swallowCloseFailure);
++					else await closing;
+ 				}
+-			} finally {
+-				const closing = level.close();
+-				/* v8 ignore next 3 -- an abort between open and close needs a stalled read; the abandoned-close arm has no observable outcome. */
+-				if (signal?.aborted) closing.catch(swallowCloseFailure);
+-				else await closing;
+-			}
+-		} catch (error) {
+-			signal?.throwIfAborted();
+-			throw new DirectoryPickerError("directory-unreadable", target, `cannot list ${target}: ${messageOf(error)}`);
+-		}
+-		const entries = [];
+-		let truncated = evicted;
+-		for (const candidate of window) {
+-			signal?.throwIfAborted();
+-			const row = await directoryRow(target, candidate.name, candidate.isDirectory, candidate.isSymbolicLink, signal);
+-			if (row === null) continue;
+-			if (entries.length === this.config.maxEntries) {
+-				truncated = true;
+-				break;
++				let truncated = evicted;
++				for (const candidate of window) {
++					scan.throwIfAborted();
++					const row = await directoryRow(target, candidate.name, candidate.isDirectory, candidate.isSymbolicLink, scan);
++					if (row === null) continue;
++					if (entries.length === this.config.maxEntries) {
++						truncated = true;
++						break;
++					}
++					entries.push(row);
++				}
++				return {
++					path: target,
++					home,
++					crumbs: ancestryCrumbs(target),
++					entries,
++					truncated
++				};
++			} catch (error) {
++				throw listingFailure(target, error, scan, LIST_TIMEOUT_CODE);
+ 			}
+-			entries.push(row);
++		} catch (e_1) {
++			env_1.error = e_1;
++			env_1.hasError = true;
++		} finally {
++			__disposeResources(env_1);
+ 		}
+-		return {
+-			path: target,
+-			home,
+-			crumbs: ancestryCrumbs(target),
+-			entries,
+-			truncated
+-		};
+ 	}
+ 	async createDirectory(path, name) {
+ 		if (!fullyQualified(path)) throw new DirectoryPickerError("directory-create-failed", path, `cannot create under "${path}": not a fully qualified parent path`);
+@@ -231,4 +330,4 @@ var BrowseDirectoryPicker = class extends DirectoryPicker {
+ 	}
+ };
+ //#endregion
+-export { boundedInsert, BrowseDirectoryPicker as default, fullyQualified, raceAbort };
++export { boundedInsert, BrowseDirectoryPicker as default, fullyQualified, listingFailure, raceAbort };
+diff --git a/package/lib/types/index.d.ts b/package/lib/types/index.d.ts
+index 01fd37d32be7f76ee2d5f0359de921fe5a455b99..2cc32ae1fc4d247769c110e6ef17906cbbcfb56c 100644
+--- a/package/lib/types/index.d.ts
++++ b/package/lib/types/index.d.ts
+@@ -54,10 +54,25 @@ export declare function boundedInsert(window: ListingCandidate[], candidate: Lis
+  * @returns the operation's value.
+  */
+ export declare function raceAbort<T>(operation: Promise<T>, signal: AbortSignal | undefined): Promise<T>;
++/**
++ * Map one failed listing onto the seam's error vocabulary. The scan deadline's
++ * own timeout becomes a retryable unreadable-directory error (a stalled
++ * filesystem must not hang the caller's request forever); the caller's abort
++ * passes through as its own reason — an abort is not an unreadable directory;
++ * everything else wraps with the target path.
++ * @param target - the directory whose listing failed.
++ * @param error - the thrown value (a deadline reason, the caller's abort, or an fs error).
++ * @param scan - the scan's fused deadline signal (its reason carries the timeout).
++ * @param timeoutCode - the capability-owned timeout code to recognize.
++ * @returns never: every arm throws its mapped outcome.
++ */
++export declare function listingFailure(target: string, error: unknown, scan: AbortSignal, timeoutCode: string): never;
+ /** Validated plugin configuration. */
+ export interface Config {
+     /** Complete-result bound of one listing level; see {@link BrowseDirectoryPicker.Config}. */
+     maxEntries: number;
++    /** Complete-scan deadline in milliseconds; a listing that outlives it fails with a retryable error. */
++    listTimeoutMs: number;
+ }
+ /** The `ctx.directoryPicker` browse implementation (stable capability object per service life). */
+ export default class BrowseDirectoryPicker extends DirectoryPicker {
+@@ -68,6 +83,11 @@ export default class BrowseDirectoryPicker extends DirectoryPicker {
+      * (hidden rows included), with `truncated` flagging a cut level. The
+      * default follows GitHub's web UI, which truncates directory listings at
+      * 1,000 entries.
++     *
++     * `listTimeoutMs` bounds the complete scan of one listing level: a
++     * filesystem that stalls (a network mount, an Android shared-storage FUSE
++     * pass) fails the listing with a retryable `directory-unreadable` error
++     * instead of leaving the caller's request hanging.
+      */
+     static Config: z<Config>;
+     private readonly browseCapability;

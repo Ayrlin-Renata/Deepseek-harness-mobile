@@ -1,0 +1,48 @@
+diff --git a/package/lib/runner-launch-B2zsQ1Dz.js b/package/lib/runner-launch-B2zsQ1Dz.js
+index 538e41477639a4bebaf1137eed7b3cdd97201fd0..7b9dd3f5fc2d48b7cd3d27a18c372247c6651c2b 100644
+--- a/package/lib/runner-launch-B2zsQ1Dz.js
++++ b/package/lib/runner-launch-B2zsQ1Dz.js
+@@ -667,7 +667,7 @@ var MacProcessInspector = class extends PosixProcessInspector {
+ * @returns Platform process inspector.
+ */
+ function createProcessInspector(platform = process.platform, arch = process.arch, internals = DEFAULT_INTERNALS) {
+-	if (platform === "linux") return new LinuxProcessInspector(arch, internals);
++	if (platform === "linux" || platform === "android") return new LinuxProcessInspector(arch, internals);
+ 	if (platform === "darwin") return new MacProcessInspector(internals);
+ 	if (platform === "win32") return createWindowsProcessInspector();
+ 	throw new Error(`subprocess-local: terminal inspection is unsupported on platform ${platform}`);
+diff --git a/package/package.json b/package/package.json
+index e99447e1ed93b70ebdd48208b5ce67cbd49aa917..ae8a703bdc0c103e352d4cea3490afa98d19594a 100644
+--- a/package/package.json
++++ b/package/package.json
+@@ -47,7 +47,9 @@
+   },
+   "dependencies": {
+     "@deepseek-ai/dsh-lazy-require": "0.2.1-alpha.5",
+-    "@deepseek-ai/dsh-win32-process": "0.2.1-alpha.5",
++    "@deepseek-ai/dsh-win32-process": "0.2.1-alpha.5"
++  },
++  "optionalDependencies": {
+     "koffi": "3.1.1",
+     "node-pty": "1.2.0-beta.15"
+   },
+diff --git a/package/scripts/ensure-spawn-helper.mjs b/package/scripts/ensure-spawn-helper.mjs
+index 54386fcf1d0d483d5bb3602f03049cb9530cd9e9..7a9591f5a51d86d250065c9659e4174f89671907 100644
+--- a/package/scripts/ensure-spawn-helper.mjs
++++ b/package/scripts/ensure-spawn-helper.mjs
+@@ -4,7 +4,14 @@ import { chmodSync, existsSync } from 'node:fs'
+ import { dirname, join } from 'node:path'
+ import { fileURLToPath } from 'node:url'
+ 
+-const entry = fileURLToPath(import.meta.resolve('node-pty'))
++// node-pty is an optional dependency: on platforms with no prebuild (Termux)
++// it is absent and this postinstall hook must succeed anyway.
++let entry
++try {
++  entry = fileURLToPath(import.meta.resolve('node-pty'))
++} catch {
++  process.exit(0)
++}
+ const packageRoot = dirname(dirname(entry))
+ const candidates = [
+   join(packageRoot, 'prebuilds', `${process.platform}-${process.arch}`, 'spawn-helper'),

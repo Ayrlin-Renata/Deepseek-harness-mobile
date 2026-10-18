@@ -5,3 +5,10 @@ desktop.ini
 
 # Local packaging artifacts (the install/ tarballs ARE tracked; only transient zips are not)
 *.zip
+
+# Rebuild pipeline state (build/build.js): stock upstream baselines + scratch.
+# The 12 stock 0.2.1-alpha.5 tarballs in build/cache/ are re-fetchable from the
+# registry (npm pack @deepseek-ai/dsh-<name>@0.2.1-alpha.5) and must NOT be
+# committed; build/work/ is wiped on every run.
+build/cache/
+build/work/

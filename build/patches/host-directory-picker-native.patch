@@ -1,0 +1,15 @@
+diff --git a/package/package.json b/package/package.json
+index c1b50b88630b1f4a7fd93ed2641ab814bf728806..395a59d9fa5d6c94859f30d9b5e16ab85df2f9da 100644
+--- a/package/package.json
++++ b/package/package.json
+@@ -35,7 +35,9 @@
+   "license": "MIT",
+   "dependencies": {
+     "@deepseek-ai/dsh-host-directory-picker": "0.2.1-alpha.5",
+-    "@deepseek-ai/dsh-native-command": "0.2.1-alpha.5",
++    "@deepseek-ai/dsh-native-command": "0.2.1-alpha.5"
++  },
++  "optionalDependencies": {
+     "koffi": "3.1.1"
+   },
+   "peerDependencies": {

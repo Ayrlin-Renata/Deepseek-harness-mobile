@@ -1,0 +1,67 @@
+diff --git a/package/lib/index.js b/package/lib/index.js
+index 0dbe508760f3caed21d76d7fd089190503eac041..0c433c7de3e1bce85905119530d0a23142e6754a 100644
+--- a/package/lib/index.js
++++ b/package/lib/index.js
+@@ -33,6 +33,19 @@ function resolveConfig(config) {
+ 		shellArgs: config.shellArgs !== void 0 && config.shellArgs.length > 0 ? config.shellArgs : shellDialect === "pwsh" ? DEFAULT_PWSH_ARGS : DEFAULT_BASH_ARGS
+ 	};
+ }
++/**
++* Resolve the interactive shell path. The schema default stays static
++* (`/bin/bash`, correct on desktop); Termux has no `/bin/bash`, so Android
++* substitutes `$PREFIX/bin/bash` unless the caller chose an explicit shellPath.
++* @param platform - target Node platform.
++* @param shellPath - the resolved (possibly defaulted) config value.
++* @param env - environment carrying `PREFIX` (defaults to `process.env`).
++* @returns the shell path to spawn.
++*/
++function resolveShellPath(platform, shellPath, env = process.env) {
++	if (platform === "android" && shellPath === "/bin/bash") return `${env.PREFIX ?? "/data/data/com.termux/files/usr"}/bin/bash`;
++	return shellPath;
++}
+ /** Schemastery config exposed by the plugin. */
+ const Config = z.object({
+ 	backendType: z.string().default("shell"),
+@@ -950,7 +963,7 @@ function childEnvironment(spec, dialect) {
+ 	return {
+ 		...common,
+ 		PS1: CONTROLLED_PROMPT,
+-		PROMPT_COMMAND: `printf "\\033]133;D;%s\\007" "$?"; PS1='${CONTROLLED_PROMPT}'`,
++		PROMPT_COMMAND: "printf \"\\033]133;D;%s\\007\" \"$?\"",
+ 		BASH_SILENCE_DEPRECATION_WARNING: "1"
+ 	};
+ }
+@@ -1078,8 +1091,9 @@ var BashTerminalBackend = class {
+ /** Register the local PTY backend. */
+ function apply(ctx, config) {
+ 	const resolved = resolveConfig(config);
++	resolved.shellPath = resolveShellPath(process.platform, resolved.shellPath);
+ 	validateConfig(resolved);
+ 	ctx.terminals.registerBackend(new BashTerminalBackend(ctx, resolved));
+ }
+ //#endregion
+-export { BashTerminalBackend, Config, PWSH_PROMPT_SETUP, apply, inject, name };
++export { BashTerminalBackend, Config, PWSH_PROMPT_SETUP, apply, inject, name, resolveShellPath };
+diff --git a/package/lib/types/config.d.ts b/package/lib/types/config.d.ts
+index e36e90bb40bb1e097293a4e0b15a9d6088c02ddd..9c36e3311d5e0c63cf9cc2140bd0d2f87615bde4 100644
+--- a/package/lib/types/config.d.ts
++++ b/package/lib/types/config.d.ts
+@@ -71,6 +71,18 @@ export declare const DEFAULT_PWSH_ARGS: string[];
+ export declare function resolveConfig(config: Config): ResolvedConfig;
+ /** Schemastery config exposed by the plugin. */
+ export declare const Config: z<Config>;
++/**
++ * Resolve the interactive shell path. The schema default stays static
++ * (`/bin/bash`, correct on desktop); Termux has no `/bin/bash`, so Android
++ * substitutes `$PREFIX/bin/bash` unless the caller chose an explicit shellPath.
++ * @param platform - target Node platform.
++ * @param shellPath - the resolved (possibly defaulted) config value.
++ * @param env - environment carrying `PREFIX` (defaults to `process.env`).
++ * @returns the shell path to spawn.
++ */
++export declare function resolveShellPath(platform: NodeJS.Platform, shellPath: string, env?: {
++    PREFIX?: string;
++}): string;
+ /**
+  * Assert every effective numeric config field is a positive safe integer — except
+  * `promptTailGraceMs`, whose zero is the documented "no extension" value — and that bounds

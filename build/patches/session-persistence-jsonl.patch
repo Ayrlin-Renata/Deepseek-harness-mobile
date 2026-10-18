@@ -1,0 +1,57 @@
+diff --git a/package/lib/index.js b/package/lib/index.js
+index 8247fd4f6fb1114ae1080f5e98b124e10376468f..5509f553d8127129c216ce1208be27c0d808bc55 100644
+--- a/package/lib/index.js
++++ b/package/lib/index.js
+@@ -1,7 +1,7 @@
+ import z from "@deepseek-ai/schemastery";
+ import { SessionFormatUnsupportedMigrationError, createSessionFormatCatalogWithChildren, historicalSessionFormatCatalog, sessionFormatCatalog } from "@deepseek-ai/dsh-session-format-catalog";
+ import { readdirSync } from "node:fs";
+-import { link, lstat, mkdir, mkdtemp, open, readFile, readdir, realpath, rm, stat, truncate } from "node:fs/promises";
++import { link, lstat, mkdir, mkdtemp, open, readFile, readdir, realpath, rename, rm, stat, truncate } from "node:fs/promises";
+ import { basename, dirname, isAbsolute, join, parse, resolve, toNamespacedPath } from "node:path";
+ import { performance } from "node:perf_hooks";
+ import { scheduler } from "node:timers/promises";
+@@ -2281,6 +2281,12 @@ async function prepareCatalogFacts(parentId, sources, compression, signal) {
+ * every read validates the same fail-closed storage contract.
+ * @module @deepseek-ai/dsh-session-persistence-jsonl
+ */
++/** Node errno codes where link(2) fails because the filesystem/SELinux forbids hard links (not a real path conflict). */
++/* v8 ignore start -- reached only from the materializePosix no-hard-link fallback (Android/SELinux denies link(2)); POSIX link() succeeds and Windows takes materializeWin32, so no test lane exercises this predicate */
++function isHardLinkUnsupported(error) {
++	const code = error.code;
++	return code === "EACCES" || code === "EPERM" || code === "EOPNOTSUPP" || code === "ENOTSUP" || code === "EXDEV" || code === "EMLINK";
++}
+ /**
+ * Internal handoff-reuse policy, not deployment configuration: a cold
+ * observation and the resume that immediately follows it reuse one parsed
+@@ -3225,8 +3231,12 @@ var JsonlSessionPersistence = class extends SessionPersistence {
+ 		try {
+ 			await link(tmp, finalPath);
+ 			linked = true;
++		} catch (error) {
++			if (!isHardLinkUnsupported(error)) throw error;
++			await rename(tmp, finalPath);
++			linked = true;
+ 		} finally {
+-			/* v8 ignore next -- link failure is the TOCTOU/IO race guarded above; not reachable in test */
++			/* v8 ignore next -- link/rename failure is the TOCTOU/IO race guarded above; not reachable in test */
+ 			if (!linked) await rm(tmp, { force: true });
+ 		}
+ 		await this.syncDirPosix(dir);
+diff --git a/package/package.json b/package/package.json
+index b424018f52daca2433b238677a21680c0de8e079..229e2b70732fc52a01ebcdf6928cbeee99d9b76e 100644
+--- a/package/package.json
++++ b/package/package.json
+@@ -41,9 +41,11 @@
+     "@deepseek-ai/dsh-session-format-v3-to-v4": "0.2.1-alpha.5",
+     "@deepseek-ai/node-addon-system": "~0.1.2",
+     "@deepseek-ai/schemastery": "~3.18.5-alpha.2",
+-    "koffi": "3.1.1",
+     "p-limit": "7.3.3"
+   },
++  "optionalDependencies": {
++    "koffi": "3.1.1"
++  },
+   "devDependencies": {
+     "@deepseek-ai/dsh-session": "0.2.1-alpha.5",
+     "@deepseek-ai/dsh-session-format-v0-to-v1": "0.2.1-alpha.5",
