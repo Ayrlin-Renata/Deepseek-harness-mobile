@@ -1,5 +1,5 @@
 diff --git a/package/lib/index.js b/package/lib/index.js
-index 8247fd4f6fb1114ae1080f5e98b124e10376468f..5509f553d8127129c216ce1208be27c0d808bc55 100644
+index 8247fd4f6fb1114ae1080f5e98b124e10376468f..7ff45e62e1226839ba4c8a37fd9b8153780ac97d 100644
 --- a/package/lib/index.js
 +++ b/package/lib/index.js
 @@ -1,7 +1,7 @@
@@ -11,7 +11,39 @@ index 8247fd4f6fb1114ae1080f5e98b124e10376468f..5509f553d8127129c216ce1208be27c0
  import { basename, dirname, isAbsolute, join, parse, resolve, toNamespacedPath } from "node:path";
  import { performance } from "node:perf_hooks";
  import { scheduler } from "node:timers/promises";
-@@ -2281,6 +2281,12 @@ async function prepareCatalogFacts(parentId, sources, compression, signal) {
+@@ -651,6 +651,21 @@ function isLockContention(error) {
+ 	const code = error?.code;
+ 	return code === "EAGAIN" || code === "EWOULDBLOCK";
+ }
++/** Code Node raises when the platform publishes no flock binding at all. */
++const FLOCK_UNSUPPORTED_CODE = "ERR_FLOCK_UNSUPPORTED_PLATFORM";
++/**
++* Whether a flock failure means the platform has no flock binding, so no lock
++* was attempted (Termux/Android: @deepseek-ai/node-addon-system ships Darwin
++* and Linux prebuilds only, and loadBinding() rejects with this exact code).
++* That is a platform capability gap, not contention and not an I/O failure, so
++* acquire() treats it as "lock acquired": the daemon is the single writer by
++* design on Android, and propagating it would make every new session
++* unopenable. Matched on the exact code string; every other error still
++* propagates unchanged.
++*/
++function isFlockUnsupportedPlatform(error) {
++	return error?.code === FLOCK_UNSUPPORTED_CODE;
++}
+ /**
+ * One held write lock. Constructed only by {@link SessionWriteLease.acquire};
+ * `release` closes the descriptor or handle, which is what releases the lock.
+@@ -696,7 +711,8 @@ var SessionWriteLease = class SessionWriteLease {
+ 					await tryLockExclusive(handle.fd);
+ 				} catch (error) {
+ 					if (isLockContention(error)) throw new SessionAlreadyOwnedError(id);
+-					throw error;
++					// Android/Termux publishes no flock binding; the daemon is the single writer by design, so a missing platform lock is a no-op. Every other error still throws.
++					if (!isFlockUnsupportedPlatform(error)) throw error;
+ 				}
+ 				const held = await handle.stat({ bigint: true });
+ 				const current = await stat(path, { bigint: true }).catch((error) => {
+@@ -2281,6 +2297,12 @@ async function prepareCatalogFacts(parentId, sources, compression, signal) {
  * every read validates the same fail-closed storage contract.
  * @module @deepseek-ai/dsh-session-persistence-jsonl
  */
@@ -24,7 +56,7 @@ index 8247fd4f6fb1114ae1080f5e98b124e10376468f..5509f553d8127129c216ce1208be27c0
  /**
  * Internal handoff-reuse policy, not deployment configuration: a cold
  * observation and the resume that immediately follows it reuse one parsed
-@@ -3225,8 +3231,12 @@ var JsonlSessionPersistence = class extends SessionPersistence {
+@@ -3225,8 +3247,12 @@ var JsonlSessionPersistence = class extends SessionPersistence {
  		try {
  			await link(tmp, finalPath);
  			linked = true;

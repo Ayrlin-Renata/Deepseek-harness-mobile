@@ -138,6 +138,10 @@ const PACKAGES = [
     markers: [
       { file: "lib/index.js", text: "isHardLinkUnsupported" },
       { file: "lib/index.js", text: "await rename(tmp, finalPath)" },
+      // Termux/Android: node-addon-system publishes no flock binding, so this
+      // exact code is treated as "lock acquired"; every other error still throws.
+      { file: "lib/index.js", text: "ERR_FLOCK_UNSUPPORTED_PLATFORM" },
+      { file: "lib/index.js", text: "isFlockUnsupportedPlatform(error)" },
     ],
   },
   {
