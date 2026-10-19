@@ -12,13 +12,7 @@
 
 DeepSeek Harness 是一个本地 AI 编程 agent。这个项目是它的 **安卓发行版**：agent 内核跑在手机上的 [Termux](https://termux.dev/) 里，你用手机浏览器打开 `http://127.0.0.1:3080` 和它对话。版本跟随上游 **0.2.1-alpha.5** —— 和桌面版同一代。
 
-手机视口（≤ 767 px）下，网页自动切成单栏移动外壳 —— 侧栏和右侧详情以抽屉滑入 —— 而不是桌面的三栏布局。会话内容占满屏幕，输入框固定在底部。
-
-## 截图
-
-| 移动聊天界面 | 侧栏抽屉 | 详情抽屉 |
-| --- | --- | --- |
-| ![移动聊天](01-base.png) | ![侧栏](02-sidebar.png) | ![详情](03-details.png) |
+手机视口下，网页使用**原版**三栏布局（低于 1024 px 时侧栏自动收起为图标栏）。移动端 UI 行为 —— 设置对话框、对话框自适应、用户 CSS —— 由 Sylvia 项目的 **sylvia-bridge** DSH 插件提供，而不是本 fork；见下方「本项目改了什么」。
 
 ## 为什么跑在本地
 
@@ -72,7 +66,7 @@ node --expose-internals \
 
 这个发行版是一小组自包含的**补丁集**，作用在 `0.2.1-alpha.5` 的官方 `@deepseek-ai/dsh-*` 包上，让 agent 能在安卓/Termux 上装得上、跑得起来。每条补丁都有明确的安卓侧理由：
 
-- **移动单栏外壳**（`client-ui-layout`）—— ≤767 px 时框架把三栏网格换成 `MobileFrame`：顶栏（汉堡 + 详情两个开关）、会话区，以及两个常驻挂载的滑出抽屉（侧栏、右侧栏），复用同一个布局 store —— 不引入移动端专属状态，抽屉关闭后侧栏内容状态不丢。
+- **`client-ui-layout` 保持原版（MobileFrame 已于 2026-10-19 移除）** —— fork 早期的「移动单栏外壳」已退役：DSH UI 相关工作现在归 Sylvia 项目的 *sylvia-bridge* 插件负责，不再打进 fork 的 layout 代码。该包仍以未打补丁形式随发行版提供，保持顶层安装与版本哨兵可用；构建中的 *absent* 标记会在每次重建时验证移除结果。
 - **原生依赖可选化**（`attachment-local`、`fs-local`、`session-persistence-jsonl`、`host-directory-picker-native`、`subprocess-local`、`sandbox-local`）—— `sharp`、`koffi`、`node-pty`、`dsh-sandbox-windows-acl` 移入 `optionalDependencies` 并懒加载，在没有 glibc 预编译包的 Termux 上 `npm install -g` 也能成功。
 - **安卓文件系统回退**（`attachment-local`、`fs-local`、`session-persistence-jsonl`）—— 安卓的 FUSE/sdcardfs/SELinux 拒绝 `link(2)` 硬链接，附件、write 工具、会话日志回退到 `rename()` / `copyFile(COPYFILE_EXCL)`，而不是直接失败。
 - **目录列举加固**（`host-directory-picker-browse`、`client-ui-directory-picker-browse`）—— sdcardfs 列举可能永远卡住：宿主侧给列举加了硬超时 + 窗口化列表，浏览器侧失败时给一键**重试**按钮。

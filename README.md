@@ -12,13 +12,7 @@ English | [中文](README.zh.md)
 
 DeepSeek Harness is an on-device AI coding agent. This project is its **Android distribution**: the agent core runs under [Termux](https://termux.dev/) on the phone, and you talk to it from the phone's browser at `http://127.0.0.1:3080`. It tracks upstream at **0.2.1-alpha.5** — the same generation as the desktop harness.
 
-On a phone viewport (≤ 767 px) the web UI renders a single-column mobile shell — the sidebar and the right-hand panel slide in as drawers — instead of the desktop three-column grid. The conversation fills the screen; the composer sits pinned at the bottom.
-
-## Screenshots
-
-| Mobile chat | Sidebar drawer | Details drawer |
-| --- | --- | --- |
-| ![mobile chat](01-base.png) | ![sidebar](02-sidebar.png) | ![details](03-details.png) |
+On a phone viewport the web UI uses the **stock** three-column frame (the sidebar auto-collapses to an icon rail below 1024 px). Mobile-specific UI behavior — settings dialog, dialog fit, user CSS — is provided by the **sylvia-bridge** DSH plugin in the [Sylvia](https://github.com/Ayrlin-Renata/Sylvia) project, not by this fork; see “What this project patches” below.
 
 ## Why on-device
 
@@ -72,7 +66,7 @@ Open `http://127.0.0.1:3080` in the phone browser, enter your model API key on t
 
 This distribution is a small, self-contained **patch set** over the stock `@deepseek-ai/dsh-*` packages at `0.2.1-alpha.5`, so the agent installs and runs on Android/Termux. Every patch exists for a concrete Android reason:
 
-- **Mobile single-column shell** (`client-ui-layout`) — at ≤ 767 px the frame swaps the three-column grid for `MobileFrame`: a top bar (hamburger + details toggles), the conversation, and two always-mounted slide-over drawers (sidebar, right-hand panel) reusing the same layout store — no mobile-specific state, side content keeps its state across drawer close.
+- **`client-ui-layout` ships stock (MobileFrame removed, 2026-10-19)** — the fork's early “mobile single-column shell” was retired: DSH UI concerns now live in the *sylvia-bridge* DSH plugin (Sylvia project), not in forked layout code. The package is still shipped unpatched so installs stay top-level and version canaries keep working; the build's *absent*-markers prove the removal on every rebuild.
 - **Optional native addons** (`attachment-local`, `fs-local`, `session-persistence-jsonl`, `host-directory-picker-native`, `subprocess-local`, `sandbox-local`) — `sharp`, `koffi`, `node-pty` and `dsh-sandbox-windows-acl` move to `optionalDependencies` and lazy-load, so `npm install -g` succeeds on Termux where no glibc prebuilt exists.
 - **Android filesystem fallbacks** (`attachment-local`, `fs-local`, `session-persistence-jsonl`) — Android's FUSE/sdcardfs/SELinux rejects `link(2)` hard links, so attachments, the write tool and session logs fall back to `rename()` / `copyFile(COPYFILE_EXCL)` instead of failing.
 - **Directory-listing hardening** (`host-directory-picker-browse`, `client-ui-directory-picker-browse`) — sdcardfs listings can stall forever: the host side runs them under a hard deadline with a windowed listing, and the browser side shows a one-tap **Retry** when a listing fails.

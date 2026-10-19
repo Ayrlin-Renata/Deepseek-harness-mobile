@@ -81,10 +81,16 @@ const PACKAGES = [
   {
     name: "client-ui-layout",
     optionalDeps: [],
+    // STOCK since 2026-10-19: the MobileFrame mobile shell was removed from
+    // this fork — DSH UI concerns now live in the sylvia-bridge DSH plugin
+    // (sylvia repo), not in forked layout code. The package is still shipped
+    // so installs stay top-level and version-cannaries keep working; the
+    // absent-markers below PROVE the removal on every build.
+    stock: true,
     markers: [
-      { file: "lib/client.js", text: "MobileFrame" },
-      { file: "lib/client.js", text: "MOBILE_BREAKPOINT" },
-      { file: "lib/types/client/MobileFrame.d.ts", text: "MobileFrame" },
+      { file: "lib/client.js", text: "MobileFrame", absent: true },
+      { file: "lib/client.js", text: "MOBILE_BREAKPOINT", absent: true },
+      { file: "lib/client.js", text: "pI_x6G_mobileFrame", absent: true },
     ],
   },
   {
@@ -350,7 +356,13 @@ function buildOne(pkg, options) {
 
   const stock = ensureStockTarball(pkg, options.cacheDir);
   const pkgDir = extractStock(stock.file, path.join(workDir, "extract"));
-  const applyMode = applyPatch(pkg, pkgDir, path.join(workDir, "extract"), patchFile);
+  // `stock: true` packages ship byte-for-byte upstream (their patch was
+  // retired); every other package MUST have a patch file.
+  const hasPatch = fs.existsSync(patchFile);
+  if (!hasPatch && !pkg.stock) throw new Error(`missing patch ${patchFile}`);
+  const applyMode = hasPatch
+    ? applyPatch(pkg, pkgDir, path.join(workDir, "extract"), patchFile)
+    : "stock (no patch)";
   const manifest = checkVersion(pkgDir);
   checkOptionalDeps(pkg, manifest);
   checkMarkers(pkg, pkgDir);

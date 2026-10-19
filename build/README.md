@@ -28,12 +28,17 @@ into `build/cache/` (git-ignored, re-fetchable) and reused on cache hits.
 ## What build.js enforces per package
 
 - the patch applies cleanly to the pristine stock tarball
-  (`git apply`, with a documented `git apply -3` fallback);
+  (`git apply`, with a documented `git apply -3` fallback); packages declared
+  `stock: true` in `PACKAGES` (currently `client-ui-layout` — the MobileFrame
+  shell was retired 2026-10-19) ship byte-for-byte upstream with **no patch
+  file**;
 - `package.json` version is exactly `0.2.1-alpha.5`;
 - native addons sit in `optionalDependencies`, never `dependencies`
   (sharp / koffi / node-pty / @deepseek-ai/dsh-sandbox-windows-acl);
 - patch markers are greppable in the built files (hard-link fallbacks,
-  listing-timeout fields, Android sandbox messaging, mobile shell symbols, …);
+  listing-timeout fields, Android sandbox messaging, …); markers may declare
+  `absent: true` to prove a retired feature stays gone (MobileFrame symbols
+  in `client-ui-layout`);
 - every `.js/.mjs/.cjs` file parses (`node --check`);
 - the repacked tarball re-extracts and still passes version + optionalDeps
   checks (smoke test).
